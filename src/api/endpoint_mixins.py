@@ -1,7 +1,7 @@
 import abc
 
-from flask_restful import abort, Resource, marshal
 from sqlalchemy.exc import SQLAlchemyError
+from flask_restful import abort, Resource, marshal
 
 from models import db
 
@@ -10,48 +10,56 @@ class DatabaseMixin:
     """Mixin for database related methods of endpoints"""
 
     def _get_instance(self, instance_id):
+        """Get instance of entity class by instance_id"""
         return self.entity.query.get_or_404(instance_id)
 
-    @staticmethod
+    @ staticmethod
     def _session_commit():
         try:
             db.session.commit()
-        except Exception as error:
+        except SQLAlchemyError as error:
             db.session.flush()
             db.session.rollback()
-            abort(400, message=f"Unable to create instance. Error: {error}")
+            abort(400, message=f"Unable to complete. Error: {error}")
 
 
 class ResourceABCMeta(abc.ABCMeta, type(Resource)):
     """"Metaclass for Resource abstract classes"""
 
 
-class RetrieveMixin(Resource):
-    """Mixin to retrieve resources"""
-    def get(self, instance_id):
-        instance = self.entity.query.get_or_404(instance_id)
+class GetMixin(Resource):
+    """Mixin to get resources"""
+    def get(self, instance_id=None):
+        """HTTP GET method"""
+        if not instance_id:
+            return self.list()
+        return self.retrieve(instance_id)
+
+    def retrieve(self, instance_id):
+        """Get single instance by instance_id"""
+        instance = self._get_instance(instance_id)
         return marshal(instance, self.instance_serializer)
 
-
-class ListMixin(Resource):
-    """Mixin to retrieve resources"""
-    def get(self):
+    def list(self):
+        """Get list of instances from entity class"""
         return marshal(self.entity.query.all(), self.instance_serializer)
 
 
 class CreateMixin(abc.ABC, metaclass=ResourceABCMeta):
     """Mixin to create resources"""
     def post(self):
+        """HTTP POST method"""
         attributes = self._get_create_parser().parse_args(strict=True)
         try:
             instance = self._create_instance(**attributes)
             db.session.add(instance)
-            db.session.commit()
-        except (AttributeError, SQLAlchemyError) as error:
+            self._session_commit()
+        except AttributeError as error:
             abort(400, message=f"Unable to create instance. Error: {error}")
         return marshal(instance, self.instance_serializer), 201
 
     def _create_instance(self, **kwargs):
+        """Create instance of entity class given the keyword arguments"""
         return self.entity(**kwargs)
 
     @abc.abstractmethod
@@ -62,6 +70,7 @@ class CreateMixin(abc.ABC, metaclass=ResourceABCMeta):
 class UpdateMixin(abc.ABC, metaclass=ResourceABCMeta):
     """Mixin to update resources"""
     def put(self, instance_id):
+        """HTTP PUT request"""
         attributes = self._get_update_parser().parse_args(strict=True)
         instance = self._get_instance(instance_id)
         self._update_instance(instance, attributes)
@@ -69,6 +78,7 @@ class UpdateMixin(abc.ABC, metaclass=ResourceABCMeta):
         return marshal(instance, self.instance_serializer), 201
 
     def _update_instance(self, instance, attributes):
+        """Updates instance object using dict of attributes"""
         for attribute in attributes:
             if not attributes[attribute]:
                 continue
@@ -85,6 +95,7 @@ class UpdateMixin(abc.ABC, metaclass=ResourceABCMeta):
 class DeleteMixin(Resource):
     """Mixin to delete resources"""
     def delete(self, instance_id):
+        """HTTP DELETE method"""
         instance = self._get_instance(instance_id)
         self._delete_instance(instance)
         self._session_commit()

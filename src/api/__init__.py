@@ -1,7 +1,6 @@
-from .process_endpoint import ProcessEndpoint, ProcessListEndpoint
+from .process_endpoint import ProcessEndpoint
 
 
 __all__ = [
     'ProcessEndpoint',
-    'ProcessListEndpoint',
 ]
