@@ -5,24 +5,11 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 
 
-class Recipe(db.Model):
-    __tablename__ = 'recipe'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Text, nullable=False)
-
-
-class Step(db.Model):
-    __tablename__ = 'step'
+class Process(db.Model):
+    __tablename__ = 'process'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text, nullable=False)
     description = db.Column(db.Text)
-    id_recipe = db.Column(
-        db.Integer,
-        db.ForeignKey('recipe.id', ondelete='CASCADE', match='FULL'),
-        nullable=False
-    )
-
-    recipe = db.relationship('Recipe', backref='steps')
 
 
 class EventType(Enum):
@@ -38,9 +25,9 @@ class Event(db.Model):
     start = db.Column(db.DateTime, nullable=False)
     finish = db.Column(db.DateTime)
     event_type = db.Column(db.Enum(EventType), nullable=False)
-    id_step = db.Column(
+    id_process = db.Column(
         db.Integer,
-        db.ForeignKey('step.id', ondelete='RESTRICT', match='FULL'),
+        db.ForeignKey('process.id', ondelete='RESTRICT', match='FULL'),
         nullable=False
     )
 
