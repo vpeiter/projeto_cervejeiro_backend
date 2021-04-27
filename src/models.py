@@ -37,7 +37,7 @@ class Event(db.Model):
         db.ForeignKey('sensor.id', ondelete='RESTRICT', match='FULL')
     )
 
-    step = db.relationship('Step', backref='events')
+    process = db.relationship('Process', backref='events')
     sensor = db.relationship('Sensor', backref='events')
 
 
@@ -66,4 +66,4 @@ class Measurement(db.Model):
     )
 
     sensor = db.relationship('Sensor', backref='measurements')
-    sensor = db.relationship('Event', backref='measurements')
+    event = db.relationship('Event', backref='measurements')
