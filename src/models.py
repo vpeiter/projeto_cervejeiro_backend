@@ -1,4 +1,6 @@
+import re
 from enum import Enum
+
 from flask_sqlalchemy import SQLAlchemy
 
 
@@ -45,6 +47,13 @@ class Sensor(db.Model):
     __tablename__ = 'sensor'
     id = db.Column(db.Integer, primary_key=True)
     mac_address = db.Column(db.Text, nullable=False, unique=True)
+
+    @staticmethod
+    def valid_mac_address(value):
+        """Validates mac_address field"""
+        if not re.fullmatch(r"^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$", value):
+            raise ValueError(f"{value} is not a valid mac address")
+        return value
 
 
 class Measurement(db.Model):
