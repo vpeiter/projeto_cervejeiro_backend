@@ -65,13 +65,11 @@ class Measurement(db.Model):
     timestamp = db.Column(db.DateTime, nullable=False)
     id_sensor = db.Column(
         db.Integer,
-        db.ForeignKey('sensor.id', ondelete='CASCADE', match='FULL'),
-        nullable=False
+        db.ForeignKey('sensor.id', ondelete='CASCADE', match='FULL')
     )
     id_event = db.Column(
         db.Integer,
-        db.ForeignKey('event.id', ondelete='RESTRICT', match='FULL'),
-        nullable=False
+        db.ForeignKey('event.id', ondelete='RESTRICT', match='FULL')
     )
 
     sensor = db.relationship('Sensor', backref='measurements')
