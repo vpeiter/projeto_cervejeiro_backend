@@ -1,7 +1,7 @@
 from flask_restful import reqparse, fields
 
 from models import Process
-from .endpoint_mixins import DatabaseMixin,GetMixin, UpdateMixin, DeleteMixin, CreateMixin
+from .endpoint_mixins import DatabaseMixin, GetMixin, UpdateMixin, DeleteMixin, CreateMixin
 
 
 class ProcessEndpoint(DatabaseMixin, GetMixin, UpdateMixin, DeleteMixin, CreateMixin):
@@ -22,6 +22,6 @@ class ProcessEndpoint(DatabaseMixin, GetMixin, UpdateMixin, DeleteMixin, CreateM
 
     def _get_create_parser(self):
         parser = reqparse.RequestParser()
-        parser.add_argument('name', type=str)
+        parser.add_argument('name', type=str, required=True)
         parser.add_argument('description', type=str)
         return parser
