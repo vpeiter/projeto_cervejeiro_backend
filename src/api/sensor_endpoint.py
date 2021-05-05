@@ -1,17 +1,21 @@
 from flask_restful import reqparse, fields
 
 from models import Sensor
-from .endpoint_mixins import DatabaseMixin, GetMixin, UpdateMixin, DeleteMixin, CreateMixin
+from .endpoint_mixins import BaseEndpoint, GetMixin, UpdateMixin, DeleteMixin, CreateMixin
 
 
-class SensorEndpoint(DatabaseMixin, GetMixin, UpdateMixin, DeleteMixin, CreateMixin):
+instance_serializer = {
+    'id': fields.Integer,
+    'mac_address': fields.String
+}
+
+
+class SensorEndpoint(GetMixin, UpdateMixin, DeleteMixin, CreateMixin, BaseEndpoint):
     """Sensor model endpoint class"""
     entity = Sensor
 
-    instance_serializer = {
-        'id': fields.Integer,
-        'mac_address': fields.String
-    }
+    def __init__(self):
+        super().__init__(instance_serializer)
 
     def _get_update_parser(self):
         parser = reqparse.RequestParser()

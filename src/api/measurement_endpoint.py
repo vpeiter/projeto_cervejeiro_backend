@@ -3,22 +3,26 @@ from datetime import datetime
 from flask_restful import reqparse, fields, inputs
 
 from models import Measurement, Sensor, Event
-from .endpoint_mixins import DatabaseMixin, GetMixin, DeleteMixin, CreateMixin
+from .endpoint_mixins import BaseEndpoint, GetMixin, DeleteMixin, CreateMixin
 
 
-class MeasurementEndpoint(DatabaseMixin, GetMixin, DeleteMixin, CreateMixin):
+instance_serializer = {
+    'id': fields.Integer,
+    'inclination': fields.Float,
+    'temperature': fields.Float,
+    'battery': fields.Integer,
+    'timestamp': fields.DateTime(dt_format='iso8601'),
+    'id_sensor': fields.Integer,
+    'id_event': fields.Integer
+}
+
+
+class MeasurementEndpoint(GetMixin, DeleteMixin, CreateMixin, BaseEndpoint):
     """Process model endpoint class"""
     entity = Measurement
 
-    instance_serializer = {
-        'id': fields.Integer,
-        'inclination': fields.Float,
-        'temperature': fields.Float,
-        'battery': fields.Integer,
-        'timestamp': fields.DateTime(dt_format='iso8601'),
-        'id_sensor': fields.Integer,
-        'id_event': fields.Integer
-    }
+    def __init__(self):
+        super().__init__(instance_serializer)
 
     def _get_create_parser(self):
         parser = reqparse.RequestParser()

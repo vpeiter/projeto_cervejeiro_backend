@@ -23,6 +23,14 @@ class DatabaseMixin:
             abort(400, message=f"Unable to complete. Error: {error}")
 
 
+class BaseEndpoint(DatabaseMixin):
+    """Base class for all endpoints"""
+    def __init__(self, instance_serializer):
+        self.instance_serializer = instance_serializer
+        self.detailed_serializer = self.instance_serializer
+
+
+
 class ResourceABCMeta(abc.ABCMeta, type(Resource)):
     """"Metaclass for Resource abstract classes"""
 
@@ -38,7 +46,7 @@ class GetMixin(Resource):
     def retrieve(self, instance_id):
         """Get single instance by instance_id"""
         instance = self._get_instance(instance_id)
-        return marshal(instance, self.instance_serializer)
+        return marshal(instance, self.detailed_serializer)
 
     def list(self):
         """Get list of instances from entity class"""

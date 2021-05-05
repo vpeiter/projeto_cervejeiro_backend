@@ -19,6 +19,10 @@ class EventType(Enum):
     SENSOR = 'SENSOR'
     TIMED = 'TIMED'
 
+    def __str__(self):
+        """String representation of Enum"""
+        return str(self.value)
+
 
 class Event(db.Model):
     __tablename__ = 'event'
