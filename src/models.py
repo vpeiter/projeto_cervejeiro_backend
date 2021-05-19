@@ -43,8 +43,8 @@ class Event(db.Model):
         db.ForeignKey('sensor.id', ondelete='RESTRICT', match='FULL')
     )
 
-    process = db.relationship('Process', backref='events', cascade_backrefs=True)
-    sensor = db.relationship('Sensor', backref='events', cascade_backrefs=True)
+    process = db.relationship('Process', backref=db.backref('events', cascade='all, delete'))
+    sensor = db.relationship('Sensor', backref=db.backref('events', cascade='all, delete'))
 
 
 class Sensor(db.Model):
@@ -76,5 +76,5 @@ class Measurement(db.Model):
         db.ForeignKey('event.id', ondelete='RESTRICT', match='FULL')
     )
 
-    sensor = db.relationship('Sensor', backref='measurements', cascade_backrefs=True)
-    event = db.relationship('Event', backref='measurements', cascade_backrefs=True)
+    sensor = db.relationship('Sensor', backref=db.backref('measurements', cascade='all, delete'))
+    event = db.relationship('Event', backref=db.backref('measurements', cascade='all, delete'))

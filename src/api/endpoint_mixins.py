@@ -8,29 +8,32 @@ from models import db
 
 class DatabaseMixin:
     """Mixin for database related methods of endpoints"""
+    def __init__(self):
+        self._session = db.session
 
     def _get_instance(self, instance_id):
         """Get instance of entity class by instance_id"""
         return self.entity.query.get_or_404(instance_id)
 
-    @ staticmethod
-    def _session_commit():
+    def _session_commit(self):
         try:
-            db.session.commit()
+            self._session.commit()
         except SQLAlchemyError as error:
-            db.session.flush()
-            db.session.rollback()
+            self._session.flush()
+            self._session.rollback()
             abort(400, message=f"Unable to complete. Error: {error}")
 
 
 class BaseEndpoint(DatabaseMixin):
     """Base class for all endpoints"""
     def __init__(self, instance_serializer):
+        super().__init__()
         self.instance_serializer = instance_serializer
         self.detailed_serializer = self.instance_serializer
     
     def _parse_attributes(self, parser):
-        """Returns dict of arguments and values of the request, parsed with given parser"""
+        """Returns dict of arguments and values of the request, parsed with given parser. None values are considered as
+        absent attributes and ignored."""
         return {argument: value for argument, value in parser.parse_args(strict=True).items() if value is not None}
 
 
@@ -63,7 +66,7 @@ class CreateMixin(abc.ABC, metaclass=ResourceABCMeta):
         attributes = self._parse_attributes(self._get_create_parser())
         try:
             instance = self._create_instance(**attributes)
-            db.session.add(instance)
+            self._session.add(instance)
             self._session_commit()
         except AttributeError as error:
             abort(400, message=f"Unable to create instance. Error: {error}")
@@ -95,8 +98,6 @@ class UpdateMixin(abc.ABC, metaclass=ResourceABCMeta):
     def _set_instance_attributes(self, instance, attributes):
         """Sets instance attributes given dict of attributes"""
         for attribute in attributes:
-            if not attributes[attribute]:
-                continue
             try:
                 setattr(instance, attribute, attributes[attribute])
             except AttributeError:
@@ -117,5 +118,5 @@ class DeleteMixin(Resource):
         return '', 204
 
     def _delete_instance(self, instance_id):
-        return db.session.delete(instance_id)
+        return self._session.delete(instance_id)
 

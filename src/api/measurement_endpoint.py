@@ -39,16 +39,16 @@ class MeasurementEndpoint(GetMixin, DeleteMixin, CreateMixin, BaseEndpoint):
         kwargs["sensor"] = sensor
         if 'timestamp' not in kwargs:
             kwargs['timestamp'] = datetime.now()
-        event = self._get_event(sensor)
-        kwargs["event"] = event
+        kwargs["event"] = self._get_event(sensor)
         return self.entity(**kwargs)
 
-    @classmethod
-    def _get_sensor(cls, mac_address):
+    def _get_sensor(self, mac_address):
         """Gets sensor by mac_address. Creates new sensor if not found."""
         sensor = Sensor.query.filter_by(mac_address=mac_address).one_or_none()
         if not sensor:
             sensor = Sensor(mac_address=mac_address)
+            self._session.add(sensor)
+            self._session.flush()
         return sensor
 
     @classmethod
