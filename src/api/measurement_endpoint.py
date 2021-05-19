@@ -2,7 +2,7 @@ from datetime import datetime
 
 from flask_restful import reqparse, fields, inputs
 
-from models import Measurement, Sensor, Event
+from models import Measurement, Sensor, Event, EventType
 from .endpoint_mixins import BaseEndpoint, GetMixin, DeleteMixin, CreateMixin
 
 
@@ -12,8 +12,8 @@ instance_serializer = {
     'temperature': fields.Float,
     'battery': fields.Integer,
     'timestamp': fields.DateTime(dt_format='iso8601'),
-    'id_sensor': fields.Integer,
-    'id_event': fields.Integer
+    'id_sensor': fields.Integer(default=None),
+    'id_event': fields.Integer(default=None)
 }
 
 
@@ -37,13 +37,24 @@ class MeasurementEndpoint(GetMixin, DeleteMixin, CreateMixin, BaseEndpoint):
         mac = kwargs.pop('sensor_mac_address')
         sensor = self._get_sensor(mac)
         kwargs["sensor"] = sensor
-        if not kwargs['timestamp']:
+        if 'timestamp' not in kwargs:
             kwargs['timestamp'] = datetime.now()
+        event = self._get_event(sensor)
+        kwargs["event"] = event
         return self.entity(**kwargs)
 
-    def _get_sensor(self, mac_address):
+    @classmethod
+    def _get_sensor(cls, mac_address):
         """Gets sensor by mac_address. Creates new sensor if not found."""
         sensor = Sensor.query.filter_by(mac_address=mac_address).one_or_none()
         if not sensor:
             sensor = Sensor(mac_address=mac_address)
         return sensor
+
+    @classmethod
+    def _get_event(cls, sensor):
+        """Gets event by sensor"""
+        return Event.query.filter(Event.event_type == EventType.SENSOR)\
+            .filter(Event.sensor == sensor)\
+            .filter(Event.finish.is_(None))\
+            .one_or_none()

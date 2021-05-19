@@ -28,7 +28,10 @@ class BaseEndpoint(DatabaseMixin):
     def __init__(self, instance_serializer):
         self.instance_serializer = instance_serializer
         self.detailed_serializer = self.instance_serializer
-
+    
+    def _parse_attributes(self, parser):
+        """Returns dict of arguments and values of the request, parsed with given parser"""
+        return {argument: value for argument, value in parser.parse_args(strict=True).items() if value is not None}
 
 
 class ResourceABCMeta(abc.ABCMeta, type(Resource)):
@@ -57,7 +60,7 @@ class CreateMixin(abc.ABC, metaclass=ResourceABCMeta):
     """Mixin to create resources"""
     def post(self):
         """HTTP POST method"""
-        attributes = self._get_create_parser().parse_args(strict=True)
+        attributes = self._parse_attributes(self._get_create_parser())
         try:
             instance = self._create_instance(**attributes)
             db.session.add(instance)
@@ -79,7 +82,7 @@ class UpdateMixin(abc.ABC, metaclass=ResourceABCMeta):
     """Mixin to update resources"""
     def put(self, instance_id):
         """HTTP PUT request"""
-        attributes = self._get_update_parser().parse_args(strict=True)
+        attributes = self._parse_attributes(self._get_update_parser())
         instance = self._get_instance(instance_id)
         self._update_instance(instance, attributes)
         self._session_commit()
@@ -87,6 +90,10 @@ class UpdateMixin(abc.ABC, metaclass=ResourceABCMeta):
 
     def _update_instance(self, instance, attributes):
         """Updates instance object using dict of attributes"""
+        self._set_instance_attributes(instance, attributes)
+
+    def _set_instance_attributes(self, instance, attributes):
+        """Sets instance attributes given dict of attributes"""
         for attribute in attributes:
             if not attributes[attribute]:
                 continue
