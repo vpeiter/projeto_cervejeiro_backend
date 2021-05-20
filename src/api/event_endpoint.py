@@ -40,7 +40,7 @@ class EventEndpoint(GetMixin, UpdateMixin, DeleteMixin, CreateMixin, BaseEndpoin
 
     def _get_create_parser(self):
         parser = reqparse.RequestParser()
-        parser.replace_argument('name', type=str, required=True)
+        parser.add_argument('name', type=str, required=True)
         parser.add_argument('start', type=inputs.datetime_from_iso8601)
         parser.add_argument('event_type', type=EventType, required=True)
         parser.add_argument('id_process', type=int, required=True)
