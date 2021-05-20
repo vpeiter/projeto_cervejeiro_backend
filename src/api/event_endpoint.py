@@ -12,7 +12,7 @@ instance_serializer = {
     'name': fields.String,
     'start': fields.DateTime(dt_format='iso8601'),
     'finish': fields.DateTime(dt_format='iso8601'),
-    'duration': fields.DateTime(dt_format='iso8601'),
+    'duration': fields.Integer,
     'event_type': fields.String,
     'id_process': fields.Integer(default=None),
     'id_sensor': fields.Integer(default=None),
@@ -45,7 +45,7 @@ class EventEndpoint(GetMixin, UpdateMixin, DeleteMixin, CreateMixin, BaseEndpoin
         parser.add_argument('event_type', type=EventType, required=True)
         parser.add_argument('id_process', type=int, required=True)
         parser.add_argument('finish', type=inputs.datetime_from_iso8601)
-        parser.add_argument('duration', type=inputs.timedelta)
+        parser.add_argument('duration', type=int)
         parser.add_argument('id_sensor', type=int)
         return parser
 

@@ -37,7 +37,7 @@ class Event(db.Model):
         nullable=False
     )
 
-    duration = db.Column(db.Interval)
+    duration = db.Column(db.Integer)
     id_sensor = db.Column(
         db.Integer,
         db.ForeignKey('sensor.id', ondelete='RESTRICT', match='FULL')
