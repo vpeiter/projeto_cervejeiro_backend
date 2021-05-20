@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from flask_restful import reqparse, fields, inputs
 
 from models import Event, EventType, Measurement, Sensor
@@ -39,7 +41,7 @@ class EventEndpoint(GetMixin, UpdateMixin, DeleteMixin, CreateMixin, BaseEndpoin
     def _get_create_parser(self):
         parser = reqparse.RequestParser()
         parser.replace_argument('name', type=str, required=True)
-        parser.replace_argument('start', type=inputs.datetime_from_iso8601, required=True)
+        parser.add_argument('start', type=inputs.datetime_from_iso8601)
         parser.add_argument('event_type', type=EventType, required=True)
         parser.add_argument('id_process', type=int, required=True)
         parser.add_argument('finish', type=inputs.datetime_from_iso8601)
@@ -55,6 +57,8 @@ class EventEndpoint(GetMixin, UpdateMixin, DeleteMixin, CreateMixin, BaseEndpoin
         """Create instance of entity class given the keyword arguments"""
         event_type = kwargs['event_type']
         self._validate_event_type_arguments(event_type, kwargs)
+        if 'start' not in kwargs:
+            kwargs['start'] = datetime.now()
         instance = self.entity(**kwargs)
         if instance.id_sensor:
             self._clear_measurements_before_start(instance)
