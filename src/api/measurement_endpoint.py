@@ -64,7 +64,7 @@ class MeasurementEndpoint(GetMixin, DeleteMixin, CreateMixin, BaseEndpoint):
         calibration = DensityCalibration.query.filter(DensityCalibration.id_sensor == sensor.id)\
             .order_by(DensityCalibration.timestamp.desc()).first()
         if not calibration:
-            calibration = DensityCalibration(coefficient=0.1367, offset=-10)
+            calibration = DensityCalibration(coefficient=0.0017, offset=0.9592)
         return calibration
 
     @classmethod
