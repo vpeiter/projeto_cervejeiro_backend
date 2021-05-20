@@ -88,6 +88,7 @@ class UpdateMixin(abc.ABC, metaclass=ResourceABCMeta):
         attributes = self._parse_attributes(self._get_update_parser())
         instance = self._get_instance(instance_id)
         self._update_instance(instance, attributes)
+        self._session.add(instance)
         self._session_commit()
         return marshal(instance, self.instance_serializer), 201
 

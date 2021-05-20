@@ -14,7 +14,7 @@ instance_serializer = {
 
 detailed_serializer = {
     **instance_serializer,
-    'events': fields.Nested(event_serializer)
+    'events': fields.List(fields.Nested(event_serializer))
 }
 
 

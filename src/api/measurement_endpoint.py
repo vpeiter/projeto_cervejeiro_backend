@@ -2,7 +2,7 @@ from datetime import datetime
 
 from flask_restful import reqparse, fields, inputs
 
-from models import Measurement, Sensor, Event, EventType
+from models import Measurement, Sensor, Event, EventType, DensityCalibration
 from .endpoint_mixins import BaseEndpoint, GetMixin, DeleteMixin, CreateMixin
 
 
@@ -10,6 +10,7 @@ instance_serializer = {
     'id': fields.Integer,
     'inclination': fields.Float,
     'temperature': fields.Float,
+    'density': fields.Float,
     'battery': fields.Integer,
     'timestamp': fields.DateTime(dt_format='iso8601'),
     'id_sensor': fields.Integer(default=None),
@@ -39,7 +40,13 @@ class MeasurementEndpoint(GetMixin, DeleteMixin, CreateMixin, BaseEndpoint):
         kwargs["sensor"] = sensor
         if 'timestamp' not in kwargs:
             kwargs['timestamp'] = datetime.now()
-        kwargs["event"] = self._get_event(sensor)
+        kwargs['event'] = self._get_event(sensor)
+        calibration = self._get_calibration(sensor)
+        kwargs['density'] = Measurement.calculate_density(
+            kwargs['inclination'],
+            calibration.coefficient,
+            calibration.offset
+        )
         return self.entity(**kwargs)
 
     def _get_sensor(self, mac_address):
@@ -52,9 +59,18 @@ class MeasurementEndpoint(GetMixin, DeleteMixin, CreateMixin, BaseEndpoint):
         return sensor
 
     @classmethod
+    def _get_calibration(cls, sensor):
+        """Gets latest calibration from sensor"""
+        calibration = DensityCalibration.query.filter(DensityCalibration.id_sensor == sensor.id)\
+            .order_by(DensityCalibration.timestamp.desc()).first()
+        if not calibration:
+            calibration = DensityCalibration(coefficient=0.1367, offset=-10)
+        return calibration
+
+    @classmethod
     def _get_event(cls, sensor):
         """Gets event by sensor"""
         return Event.query.filter(Event.event_type == EventType.SENSOR)\
-            .filter(Event.sensor == sensor)\
+            .filter(Event.id_sensor == sensor.id)\
             .filter(Event.finish.is_(None))\
             .one_or_none()

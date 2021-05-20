@@ -65,6 +65,7 @@ class Measurement(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     inclination = db.Column(db.Float, nullable=False)
     temperature = db.Column(db.Float, nullable=False)
+    density = db.Column(db.Float, nullable=False)
     battery = db.Column(db.Integer, nullable=False)
     timestamp = db.Column(db.DateTime, nullable=False)
     id_sensor = db.Column(
@@ -78,3 +79,20 @@ class Measurement(db.Model):
 
     sensor = db.relationship('Sensor', backref=db.backref('measurements', cascade='all, delete'))
     event = db.relationship('Event', backref=db.backref('measurements', cascade='all, delete'))
+
+    @classmethod
+    def calculate_density(cls, inclination: float, coefficient, offset):
+        """Calculate density from inclination and calibration"""
+        return coefficient * inclination + offset
+
+
+class DensityCalibration(db.Model):
+    __tablename__ = 'density_calibration'
+    id = db.Column(db.Integer, primary_key=True)
+    coefficient = db.Column(db.Float, nullable=False)
+    offset = db.Column(db.Float, nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False)
+    id_sensor = db.Column(
+        db.Integer,
+        db.ForeignKey('sensor.id', ondelete='CASCADE', match='FULL')
+    )

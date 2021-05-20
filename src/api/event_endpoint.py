@@ -18,7 +18,7 @@ instance_serializer = {
 
 detailed_serializer = {
     **instance_serializer,
-    'measurements': fields.Nested(measurement_serializer)
+    'measurements': fields.List(fields.Nested(measurement_serializer))
 }
 
 
@@ -34,15 +34,16 @@ class EventEndpoint(GetMixin, UpdateMixin, DeleteMixin, CreateMixin, BaseEndpoin
         parser = reqparse.RequestParser()
         parser.add_argument('name', type=str)
         parser.add_argument('finish', type=inputs.datetime_from_iso8601)
-        parser.add_argument('duration', type=inputs.timedelta)
         return parser
 
     def _get_create_parser(self):
-        parser = self._get_update_parser()
+        parser = reqparse.RequestParser()
         parser.replace_argument('name', type=str, required=True)
-        parser.add_argument('start', type=inputs.datetime_from_iso8601, required=True)
+        parser.replace_argument('start', type=inputs.datetime_from_iso8601, required=True)
         parser.add_argument('event_type', type=EventType, required=True)
         parser.add_argument('id_process', type=int, required=True)
+        parser.add_argument('finish', type=inputs.datetime_from_iso8601)
+        parser.add_argument('duration', type=inputs.timedelta)
         parser.add_argument('id_sensor', type=int)
         return parser
 
