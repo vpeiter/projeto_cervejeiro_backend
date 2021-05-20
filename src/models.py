@@ -96,3 +96,4 @@ class DensityCalibration(db.Model):
         db.Integer,
         db.ForeignKey('sensor.id', ondelete='CASCADE', match='FULL')
     )
+    sensor = db.relationship('Sensor', backref=db.backref('calibrations', cascade='all, delete'))
